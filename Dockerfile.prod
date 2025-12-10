@@ -1,0 +1,26 @@
+FROM oven/bun:1-alpine AS deps
+
+WORKDIR /app
+
+COPY package.json bun.lock ./
+
+# 依存関係をインストール
+RUN bun install --frozen-lockfile --production
+
+# --- 実行ステージ ---
+FROM oven/bun:1-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# 依存関係をコピー
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY . .
+
+USER bun
+
+EXPOSE 3000
+
+CMD ["bun", "run", "index.ts"]
